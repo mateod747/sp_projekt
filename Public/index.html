@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Twitter Stream</title>
+    <meta name="description" content="Twitter Stream">
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="img-container">
+        <img id="image" src="images/pozer.jpg"/>
+      </div>
+      <div class="tweet-container">
+        <div class="tweet-handle-container">
+            <div class="tweet-handle-image">
+              <img id="user-image" src="images/jaa.jpg" />
+            </div>
+            <div class="tweet-handle-name">
+              <p id="user-name">Twitter Stream</p>
+              <p id="user-description">Twitter stream API</p>
+            </div>
+          </div>
+        <div class="tweet-content" id="content">
+            Tvit...
+        </div>
+        
+      </div>
+    </div>
+    <footer>
+      Mateo Dubinjak
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+      var socket = io();
+      var tweetArray = [];
+      var index = 0;
+      socket.on('connect',function(data){
+         console.log('connected');
+      })
+      socket.on('tweet', function (tweet) {
+          console.log(tweet.tweet);
+          var tweetbody = {
+            'text': tweet.tweet.text,
+            'userScreenName': "@" + tweet.tweet.user.screen_name,
+            'userImage': tweet.tweet.user.profile_image_url_https,
+            'userDescription': tweet.tweet.user.description,
+          }
+          try {
+            if(tweet.tweet.entities.media[0].media_url_https) {
+              tweetbody['image'] = tweet.tweet.entities.media[0].media_url_https;
+            }
+          } catch(err) { }
+          tweetArray.unshift(tweetbody);
+      });
+
+      
+      socket.on('allTweet', function (tweet) {
+          console.log(tweet);
+          tweetArray=tweet;
+          loopArray();
+      });
+      
+
+      function loopArray() {
+        if(tweetArray.length > index) {
+          $(".img-container").removeClass('noimage');
+          var currentTweet = tweetArray[index];
+          index ++;
+            $('#user-name').html(currentTweet.userScreenName);
+            $('#user-description').html(currentTweet.userDescription);
+            $('#content').html(currentTweet.text);
+            $("#user-image").attr("src",currentTweet.userImage);
+            if(currentTweet.image) {            
+              $("#image").attr("src",currentTweet.image);            
+            }else{
+               $(".img-container").addClass('noimage');
+            }
+        } else {
+          index = 0;
+        }
+        setTimeout(loopArray, 3500);
+      }
+    </script>
+  </body>
+</html>
